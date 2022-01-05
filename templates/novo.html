@@ -1,5 +1,5 @@
 {%extends 'template.html'%} {% block conteudo %}
-<form method="POST" action="/criar">
+<form method="POST" action="{{url_for('criar')}}">
     <fieldset>
         <div class="form-group">
             <label for="nome">Nome</label>
