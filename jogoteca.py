@@ -43,6 +43,9 @@ def criar():
 
     jogo = Jogo(nome,categoria, console)
     jogo_dao.salvar(jogo)
+    arquivo = request.files['arquivo']
+
+    arquivo.save(f'uploads/{arquivo.filename}')
 
     return redirect(url_for('index'))
 
@@ -56,7 +59,15 @@ def editar(id):
 
 @app.route('/atualizar', methods=['POST',])
 def atualizar():
-    pass
+    nome = request.form['nome']
+    categoria = request.form['categoria']
+    console = request.form['console']
+    id = request.form['id']
+
+    jogo = Jogo(nome,categoria, console, id)
+    jogo_dao.salvar(jogo)
+
+    return redirect(url_for('index'))
 
 
 @app.route('/login')
@@ -77,6 +88,12 @@ def autenticar():
     else:
         flash('Não logado, tente novamente')
         return redirect(url_for('login'))
+
+@app.route('/deletar/<int:id>')
+def deletar(id):
+    jogo_dao.deletar(id)
+    flash('o jogo foi removido com sucesso')
+    return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
