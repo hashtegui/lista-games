@@ -1,60 +1,32 @@
 from flask import Flask, render_template, request, redirect, session, flash, url_for
+from dao import JogoDao, UsuarioDao
+from models import Usuario, Jogo
+
+import mysql.connector
+
+
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    port = 3306,
+    password="123456",
+    auth_plugin='mysql_native_password',
+    db='jogoteca'
+)
+
+jogo_dao = JogoDao(db)
+usuario_dao = UsuarioDao(db)
 
 app = Flask(__name__)
 app.secret_key = 'guilherme'
 
-class Jogo():
-    def __init__(self, nome, categoria, console) -> None:
-        self.__nome = nome
-        self.__categoria = categoria
-        self.__console = console
-    
-    @property
-    def nome(self):
-        return self.__nome
-    
-    @property
-    def categoria(self):
-        return self.__categoria
-    
-    @property
-    def console(self):
-        return self.__console
-
-class Usuario:
-    def __init__(self, id, nome, senha) -> None:
-        self.__id = id
-        self.__nome = nome
-        self.__senha = senha
-
-    @property
-    def nome(self):
-        return self.__nome
-    @property
-    def id(self):
-        return self.__id
-    @property
-    def senha(self):
-        return self.__senha
 
 
-usuario1 = Usuario('gui','Guilherme', '1234')
-usuario2 = Usuario('nico','Nico Steppat', '7a1')
-usuario3 = Usuario('flavio','Flavio', 'javascript')
-
-usuarios = {usuario1.id: usuario1,
-            usuario2.id:usuario2 , 
-            usuario3.id: usuario3}
-
-jogo1 = Jogo('Super Mario', 'Aventura', 'SNES')
-jogo2 = Jogo('Pokemom Gold', 'RPG', 'Game Boy')
-jogo3 = Jogo('Mortal Kombat', 'Luta', 'N64')
-lista = [jogo1, jogo2, jogo3]
 
 
 @app.route('/')
 def index():
-    
+    lista = jogo_dao.listar()
     return render_template('lista.html', titulo='Jogos', jogos=lista)
 
 @app.route('/novo')
@@ -70,9 +42,22 @@ def criar():
     console = request.form['console']
 
     jogo = Jogo(nome,categoria, console)
-    lista.append(jogo)
+    jogo_dao.salvar(jogo)
 
     return redirect(url_for('index'))
+
+@app.route('/editar/<int:id>')
+def editar(id):
+    if 'usuario_logado' not in session or session['usuario_logado'] == None:
+        return redirect(url_for('login',proxima=url_for('editar')))
+    jogo = jogo_dao.buscar_por_id(id)
+    return render_template('editar.html', titulo='Editando Jogo', jogo=jogo)
+
+
+@app.route('/atualizar', methods=['POST',])
+def atualizar():
+    pass
+
 
 @app.route('/login')
 def login():
@@ -81,8 +66,9 @@ def login():
 
 @app.route('/autenticar', methods=['POST',])
 def autenticar():
-    if request.form['usuario']in usuarios:
-       usuario = usuarios[request.form['usuario']]
+    usuario = usuario_dao.busca_por_id(request.form['usuario'])
+
+    if usuario:
        if usuario.senha == request.form['senha']:
             session['usuario_logado'] = usuario.id
             flash(usuario.nome + ' logou com sucesso!')
