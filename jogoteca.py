@@ -3,6 +3,7 @@ from dao import JogoDao, UsuarioDao
 from models import Usuario, Jogo
 
 import mysql.connector
+import os
 
 
 db = mysql.connector.connect(
@@ -19,10 +20,8 @@ usuario_dao = UsuarioDao(db)
 
 app = Flask(__name__)
 app.secret_key = 'guilherme'
-
-
-
-
+app.config['UPLOAD_PATH'] = \
+    os.path.dirname(os.path.abspath(__file__)) + '/uploads'
 
 @app.route('/')
 def index():
@@ -42,10 +41,10 @@ def criar():
     console = request.form['console']
 
     jogo = Jogo(nome,categoria, console)
-    jogo_dao.salvar(jogo)
+    jogo = jogo_dao.salvar(jogo)
     arquivo = request.files['arquivo']
-
-    arquivo.save(f'uploads/{arquivo.filename}')
+    upload_path = app.config['UPLOAD_PATH'] 
+    arquivo.save(f'{upload_path}/capa_{jogo.id}.jpg')
 
     return redirect(url_for('index'))
 
