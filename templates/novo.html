@@ -1,8 +1,16 @@
 {%extends 'template.html'%} {% block conteudo %}
 <form method="POST" action="{{url_for('criar')}}" enctype="multipart/form-data">
+    <figure>
+        <img src="{{url_for('imagem', nome_arquivo='capa_padrao.jpg')}}" alt="">
+        <figcaption>
+            <label>
+                <input type="file" name="arquivo" accept=".jpg">
+            </label>
+        </figcaption>
+    </figure>
     <fieldset>
         <div class="form-group">
-            <input type="file" name="arquivo" accept=".png">
+            <input type="file" name="arquivo" accept=".jpg">
             <label for="nome">Nome</label>
             <input type="text" id="nome" name="nome" class="form-control">
         </div>
